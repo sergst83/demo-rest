@@ -1,0 +1,20 @@
+{
+  "products": [
+    {
+      "idSpec": "123",
+      "caracteristics": [
+        {
+          "addressFrom": "Адрес откуда",
+          "addressTo": "Адрес куда",
+          "cargo": {
+            "length": 1.0,
+            "width": 1.0,
+            "height": 1.0,
+            "weight": 1.0,
+            "packageType": "Коробка"
+          }
+        }
+      ]
+    }
+  ]
+}
