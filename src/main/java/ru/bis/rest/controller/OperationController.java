@@ -18,11 +18,14 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
 @RestController
@@ -54,6 +57,13 @@ public class OperationController {
                                 .toString())
                 )
                 .body(operation);
+    }
+
+    @GetMapping(produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public ResponseEntity<List<Map<String, Object>>> getOperations() {
+        ConcurrentHashMap cache = (ConcurrentHashMap) operationCache.getNativeCache();
+        List<Map<String, Object>> list = new ArrayList(cache.values());
+        return ResponseEntity.ok(list);
     }
 
     @GetMapping("/{op-id}")
@@ -92,7 +102,7 @@ public class OperationController {
         if (value == null) {
             return ResponseEntity.notFound().build();
         }
-        Map<String, Object> operationMerged = new HashMap((Map<String, Object>) value.get());
+        Map<String, Object> operationMerged = new HashMap<>((Map<String, Object>) value.get());
         operationMerged.putAll(operation);
         operationCache.put(operationId, operationMerged);
         return ResponseEntity.ok(operationMerged);
