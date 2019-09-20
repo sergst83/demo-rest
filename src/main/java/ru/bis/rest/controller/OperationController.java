@@ -15,7 +15,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.servlet.http.HttpServletRequest;
+import java.net.URI;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 import java.util.UUID;
@@ -33,7 +36,8 @@ public class OperationController {
     private Cache operationCache;
 
     @PostMapping(consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public Map<String, Object> createOperation(@RequestBody Map<String, Object> operation) {
+    public ResponseEntity<Map<String, Object>> createOperation(@RequestBody Map<String, Object> operation,
+                                                               HttpServletRequest httpServletRequest) {
         log.info("Created operation :{}", operation);
         String uuid = UUID.randomUUID().toString();
         operation.put("id", uuid);
@@ -41,7 +45,14 @@ public class OperationController {
         operation.put("numberPlate", facker.regexify("[AHKMBCXTOPE][0-9]{3}[AHKMBCXTOPE]{2}[0-9]{2,3}"));
         operation.put("arriveAt", facker.date().future(8, TimeUnit.HOURS));
         operationCache.put(uuid, operation);
-        return operation;
+        return ResponseEntity
+                .created(URI.create(
+                        httpServletRequest.getRequestURL()
+                                .append("/")
+                                .append(uuid)
+                                .toString())
+                )
+                .body(operation);
     }
 
     @GetMapping("/{op-id}")
@@ -78,8 +89,10 @@ public class OperationController {
         if (value == null) {
             return ResponseEntity.notFound().build();
         }
-        operation.put("id", operationId);
+        Map<String, Object> operationMerged = new HashMap((Map<String, Object>) value.get());
+        operationMerged.putAll(operation);
+        operation.put("id", operationMerged);
         operationCache.put(operationId, operation);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok().body(operationMerged);
     }
 }
