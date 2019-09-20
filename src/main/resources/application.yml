@@ -6,3 +6,11 @@ server:
 spring:
   application:
     name: "Services service"
+
+logging:
+  level:
+    web: debug
+
+logback:
+  access:
+    enabled: true
