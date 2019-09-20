@@ -15,12 +15,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.json.Json;
-import javax.json.JsonObject;
-import java.util.Collections;
+import java.util.Date;
 import java.util.Map;
 import java.util.Random;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 @RestController
 @RequestMapping("/operations")
@@ -39,6 +38,8 @@ public class OperationController {
         String uuid = UUID.randomUUID().toString();
         operation.put("id", uuid);
         operation.put("status", "running");
+        operation.put("numberPlate", facker.regexify("[AHKMBCXTOPE][0-9]{3}[AHKMBCXTOPE]{2}[0-9]{2,3}"));
+        operation.put("arriveAt", facker.date().future(8, TimeUnit.HOURS));
         operationCache.put(uuid, operation);
         return operation;
     }
@@ -53,10 +54,11 @@ public class OperationController {
         String status = (String) operation.get("status");
         if (status.equals("running")) {
             status = random.nextBoolean() ? "succeeded" : "running";
+            operation.put("pickUpAt", new Date());
         }
         operation.replace("status", status);
         operationCache.put(operationId, operation);
-        return ResponseEntity.ok(Collections.singletonMap("status", status));
+        return ResponseEntity.ok(operation);
     }
 
     @DeleteMapping("/{op-id}")
